@@ -2,6 +2,12 @@ import pandas as pd
 import os
 import shutil
 import json
+import argparse
+
+# CLI Arguments
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-f", "--file", help="Path of the xlsx file to upload", required=True)
+args = argParser.parse_args()
 
 org_name = "oandm"
 images = "images"
@@ -10,7 +16,7 @@ index = "index.html"
 def convert(input_string):
     return "sprint-" + input_string.replace(' ', '-').lower()
 
-df = pd.read_excel('sprint-excel.xlsx', header=0)
+df = pd.read_excel(args.file, header=0)
 
 lab_titles = df.iloc[:,1]
 sprint_titles = df.iloc[:,2]
@@ -96,6 +102,3 @@ for i in range(len(lab_titles)):
     manifest_file_name = f"../{lab_title}/{lab_title}.md"
     with open(manifest_file_path, "w") as file:
         file.write(create_manifest_file(sprint_titles[i], descriptions[i], manifest_file_name))
-
-
-
