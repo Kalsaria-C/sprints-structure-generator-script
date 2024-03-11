@@ -34,8 +34,14 @@ last_updated_date = df.iloc[:,13]
 
 ## .md file creation
 def create_md_file(i) :
+
     title_A = f"# {sprint_titles[i]}"
-    estimated_time_A = f"Estimated Time: {estimated_time[i]} minutes."
+
+    if not pd.isnull(estimated_time[i]):
+        estimated_time_A = f"Estimated Time: {estimated_time[i]} minutes."
+    else:
+        estimated_time_A = f"Estimated Time: 10 minutes."
+
     objective1_A = objective1[i]
     objective2_A = objective2[i]
     objective3_A = objective3[i]
