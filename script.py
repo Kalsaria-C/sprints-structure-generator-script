@@ -1,4 +1,4 @@
-import os, shutil, json, argparse, pandas as pd
+import os, shutil, json, argparse, pandas as pd, glob
 from urllib import request, error as urllibError
 
 # CLI Arguments
@@ -97,6 +97,16 @@ The script will proceed with local version of "index.html" file!
 src_index_file = 'index.html'               # Default local index.html to copy from in case the remote repo is down or can not be fetched for any reason
 if((not use_local_index_file) and get_latest_index_file_from_github(index_file_remote_url)):    # Fetch the latest index.html from the remote github repo
     src_index_file = 'latest/index.html'
+
+
+if(glob.glob("./oandm")):
+    # i = str(len(glob.glob("./oandm-save-*"))+1)
+    i = max([
+            int(x.split('-')[-1])
+            for x in glob.glob("./oandm-save-*") 
+            if x.split('-')[-1].isnumeric()
+        ]) + 1
+    os.rename("./oandm", "./oandm-save-" + str(i))
 
 
 # Create base oandm dist directory
