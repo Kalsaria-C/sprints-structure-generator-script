@@ -1,8 +1,5 @@
-import pandas as pd
-import os
-import shutil
-import json
-import argparse
+import os, shutil, json, argparse, pandas as pd
+from urllib import request, error as urllibError
 
 # CLI Arguments
 argParser = argparse.ArgumentParser()
@@ -12,6 +9,8 @@ args = argParser.parse_args()
 org_name = "oandm"
 images = "images"
 index = "index.html"
+index_file_remote_url = 'https://raw.githubusercontent.com/oracle-livelabs/sprints/master/sample-sprints/sprint/index.html'
+use_local_index_file = False    # Set this flag to true if you do not want to fetch the latest version of index.html from the oracle official sprints repo
 
 def convert(input_string):
     return "sprint-" + input_string.replace(' ', '-').lower()
@@ -78,27 +77,61 @@ def create_manifest_file(sprint_title, description, filename) :
     data["tutorials"][0]["filename"] = filename
     return json.dumps(data)
 
+
+def get_latest_index_file_from_github(url:str='https://raw.githubusercontent.com/oracle-livelabs/sprints/master/sample-sprints/sprint/index.html'):
+    """Checks that an index file is available in the remote repository and downloads it or shows a warning and uses the one actually available"""
+
+    try:
+        request.urlretrieve(url, 'latest/index.html')   # Download the latest index file from the remote repo (url param), no need to check or delete the cached index.html because it overrides it automatically
+        print('\033[32m\033[1m[Info]: fetched latest version of index.html file\033[0m')
+        return True
+
+    except urllibError.HTTPError as e:
+        print('\033[33m\033[1m[Warning]:', f'''
+{e.code}: "{e.msg}" Error has occurred when fetching latest version of "index.html file" from remote github repo "{url}"
+The script will proceed with local version of "index.html" file!
+\033[0m''')
+        return False
+
+
+src_index_file = 'index.html'               # Default local index.html to copy from in case the remote repo is down or can not be fetched for any reason
+if((not use_local_index_file) and get_latest_index_file_from_github(index_file_remote_url)):    # Fetch the latest index.html from the remote github repo
+    src_index_file = 'latest/index.html'
+
+
+# Create base oandm dist directory
 if not os.path.exists(org_name):
     os.makedirs(org_name)
+
 
 for i in range(len(lab_titles)):
 
     lab_title = convert(lab_titles[i])
 
+    # Create project folder
     folder_path_sprint = os.path.join(org_name, lab_title)
     os.makedirs(folder_path_sprint)
+
+    # Create images folder
     folder_path_images = os.path.join(folder_path_sprint, images)
     os.makedirs(folder_path_images)
+
+    # Create md file
     md_file_name = f"{lab_title}.md"
     md_file_path = os.path.join(folder_path_sprint, md_file_name)
     with open(md_file_path, "w") as file:
         file.write(create_md_file(i))
 
+    # Copy index file to project
     index_file_path = os.path.join(folder_path_sprint, index)
-    shutil.copyfile('./index.html', index_file_path)
+    shutil.copyfile(src_index_file, index_file_path)
+
+    # Create manifest file to project
     manifest = "manifest.json"
     manifest_file_path = os.path.join(folder_path_sprint, manifest)
 
     manifest_file_name = f"../{lab_title}/{lab_title}.md"
     with open(manifest_file_path, "w") as file:
         file.write(create_manifest_file(sprint_titles[i], descriptions[i], manifest_file_name))
+
+    print(f'[Info]: Lab {lab_title} was created successfully!')
