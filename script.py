@@ -101,11 +101,13 @@ if((not use_local_index_file) and get_latest_index_file_from_github(index_file_r
 
 if(glob.glob("./oandm")):
     # i = str(len(glob.glob("./oandm-save-*"))+1)
-    i = max([
-            int(x.split('-')[-1])
-            for x in glob.glob("./oandm-save-*") 
-            if x.split('-')[-1].isnumeric()
-        ]) + 1
+    i = 1
+    if glob.glob("./oandm-save-*"):
+        i = max([
+                int(x.split('-')[-1])
+                for x in glob.glob("./oandm-save-*")
+                if x.split('-')[-1].isnumeric()
+            ]) + 1
     os.rename("./oandm", "./oandm-save-" + str(i))
 
 
