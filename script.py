@@ -15,6 +15,9 @@ use_local_index_file = False    # Set this flag to true if you do not want to fe
 def convert(input_string):
     return "sprint-" + input_string.replace(' ', '-').lower()
 
+if not args.file[0] == '/':
+    args.file = './' + args.file
+
 df = pd.read_excel(args.file, header=0)
 
 lab_titles = df.iloc[:,1]
