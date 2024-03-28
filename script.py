@@ -1,10 +1,4 @@
 ## Imports
-import pandas as pd
-import os
-import shutil
-import json
-import random
-import argparse
 import os, shutil, json, argparse, pandas as pd, glob
 from urllib import request, error as urllibError
 
