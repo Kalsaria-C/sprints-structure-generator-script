@@ -4,17 +4,30 @@ import os
 import shutil
 import json
 import random
+import argparse
+import os, shutil, json, argparse, pandas as pd, glob
+from urllib import request, error as urllibError
+
+# CLI Arguments
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-f", "--file", help="Path of the xlsx file to upload", required=True)
+args = argParser.parse_args()
 
 ## Global constants
 org_name = "oandm"
 images = "images"
 index = "index.html"
 lorem_ipsum = "<!-- Replace below text with instructions -->\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+index_file_remote_url = 'https://raw.githubusercontent.com/oracle-livelabs/sprints/master/sample-sprints/sprint/index.html'
+use_local_index_file = False    # Set this flag to true if you do not want to fetch the latest version of index.html from the oracle official sprints repo
 
 ## Read excel file
-df = pd.read_excel('sprint-excel.xlsx', header=0)
+df = pd.read_excel(args.file, header=0)
 
 max_columns = 100
+
+if not args.file[0] == '/':
+    args.file = './' + args.file
 
 ## Extract rows
 generate_sprint = df.iloc[:,1]
@@ -98,6 +111,16 @@ def main_content(row):
         content += create_content_for_each_objective(step_name, step_instructions, step_images_count, step_codesnippet)
     return content
 
+if(glob.glob("./oandm")):
+    i = 1
+    if glob.glob("./oandm-save-*"):
+        i = max([
+                int(x.split('-')[-1])
+                for x in glob.glob("./oandm-save-*")
+                if x.split('-')[-1].isnumeric()
+            ]) + 1
+    os.rename("./oandm", "./oandm-save-" + str(i))
+
 ## .md file creation
 def create_md_file(i) :
 
@@ -161,6 +184,26 @@ def create_manifest_file(sprint_title, description, filename) :
     data["tutorials"][0]["filename"] = filename
     return json.dumps(data)
 
+
+def get_latest_index_file_from_github(url:str='https://raw.githubusercontent.com/oracle-livelabs/sprints/master/sample-sprints/sprint/index.html'):
+    """Checks that an index file is available in the remote repository and downloads it or shows a warning and uses the one actually available"""
+
+    try:
+        request.urlretrieve(url, 'latest/index.html')   # Download the latest index file from the remote repo (url param), no need to check or delete the cached index.html because it overrides it automatically
+        print('\033[32m\033[1m[Info]: fetched latest version of index.html file\033[0m')
+        return True
+
+    except urllibError.HTTPError as e:
+        print('\033[33m\033[1m[Warning]:', f'''
+{e.code}: "{e.msg}" Error has occurred when fetching latest version of "index.html file" from remote github repo "{url}"
+The script will proceed with local version of "index.html" file!
+\033[0m''')
+        return False
+
+src_index_file = 'index.html'               # Default local index.html to copy from in case the remote repo is down or can not be fetched for any reason
+if((not use_local_index_file) and get_latest_index_file_from_github(index_file_remote_url)):    # Fetch the latest index.html from the remote github repo
+    src_index_file = 'latest/index.html'
+
 ## Main function
 def main_function():
     if not os.path.exists(org_name):
@@ -172,21 +215,32 @@ def main_function():
             lab_title = sprint_title_converter(lab_titles[i])
             folder_path_sprint = os.path.join(org_name, lab_title)
 
+            # Create project folder
             if not os.path.exists(folder_path_sprint) :
                 os.makedirs(folder_path_sprint)
+
+                # Create images folder
                 folder_path_images = os.path.join(folder_path_sprint, images)
                 os.makedirs(folder_path_images)
+
+                # Create md file
                 md_file_name = f"{lab_title}.md"
                 md_file_path = os.path.join(folder_path_sprint, md_file_name)
                 with open(md_file_path, "w") as file:
                     file.write(create_md_file(i))
+
+                # Copy index file to project
                 index_file_path = os.path.join(folder_path_sprint, index)
-                shutil.copyfile('./index.html', index_file_path)
+                shutil.copyfile(src_index_file, index_file_path)
+
+                # Create manifest file to project
                 manifest = "manifest.json"
                 manifest_file_path = os.path.join(folder_path_sprint, manifest)
                 manifest_file_name = f"../{lab_title}/{lab_title}.md"
                 with open(manifest_file_path, "w") as file:
                     file.write(create_manifest_file(sprint_titles[i], descriptions[i], manifest_file_name))
+
+                print(f'[Info]: Lab {lab_title} was created successfully!')
 
 main_function()
 
