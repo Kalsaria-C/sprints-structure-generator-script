@@ -1,5 +1,6 @@
 ## Imports
 import os, shutil, json, argparse, pandas as pd, glob
+import random as random
 from urllib import request, error as urllibError
 
 # CLI Arguments
@@ -107,13 +108,13 @@ def main_content(row):
 
 if(glob.glob("./oandm")):
     i = 1
-    if glob.glob("./oandm-save-*"):
+    if glob.glob("./oandm-save-previous-version-*"):
         i = max([
                 int(x.split('-')[-1])
-                for x in glob.glob("./oandm-save-*")
+                for x in glob.glob("./oandm-save-previous-version-*")
                 if x.split('-')[-1].isnumeric()
             ]) + 1
-    os.rename("./oandm", "./oandm-save-" + str(i))
+    os.rename("./oandm", "./oandm-save-previous-version-" + str(i))
 
 ## .md file creation
 def create_md_file(i) :
