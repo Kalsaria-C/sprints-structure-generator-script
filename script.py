@@ -19,7 +19,7 @@ use_local_index_file = False    # Set this flag to true if you do not want to fe
 ## Read excel file
 df = pd.read_excel(args.file, header=0)
 
-max_columns = 100
+max_columns = 1000
 
 if not args.file[0] == '/':
     args.file = './' + args.file
@@ -87,23 +87,46 @@ def create_video_link():
 
 ## Function to fill main content
 def main_content(row):
+    print("yesssss")
+    print("roww", row)
     step_name = 'step_name'
     step_instructions = "step_instructions"
     step_images_count = "step_images_count"
     step_codesnippet = "step_codesnippet"
     content = ""
     for i in range(int(max_columns/4)):
+
         if pd.isnull(step_name) and pd.isnull(step_instructions) and pd.isnull(step_images_count) and pd.isnull(step_codesnippet):
             break
-        step_name = df.iloc[:,10+i*4][row]
-        step_instructions = df.iloc[:,11+i*4][row]
-        step_images_count = df.iloc[:,12+i*4][row]
+
+        try:
+            step_name = df.iloc[:,10+i*4][row]
+        except IndexError:
+            step_name = None
+
+        try:
+            step_instructions = df.iloc[:,11+i*4][row]
+        except IndexError:
+            step_instructions = None
+
+        try:
+            step_images_count = df.iloc[:,12+i*4][row]
+        except IndexError:
+            step_images_count = None
+
         if not pd.isnull(step_images_count):
             step_images_count = int(step_images_count)
-        step_codesnippet = df.iloc[:,13+i*4][row]
+
+        try:
+            step_codesnippet = df.iloc[:,13+i*4][row]
+        except IndexError:
+            step_codesnippet = None
+
         if pd.isnull(step_name) and pd.isnull(step_instructions) and pd.isnull(step_images_count) and pd.isnull(step_codesnippet):
             break
+
         content += create_content_for_each_objective(step_name, step_instructions, step_images_count, step_codesnippet)
+
     return content
 
 if(glob.glob("./oandm")):
@@ -218,6 +241,7 @@ def main_function():
                 folder_path_images = os.path.join(folder_path_sprint, images)
                 os.makedirs(folder_path_images)
 
+                print("Creating md file")
                 # Create md file
                 md_file_name = f"{lab_title}.md"
                 md_file_path = os.path.join(folder_path_sprint, md_file_name)
