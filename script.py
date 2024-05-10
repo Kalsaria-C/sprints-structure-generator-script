@@ -35,6 +35,21 @@ contributors = df.iloc[:,7]
 last_updated_by = df.iloc[:,8]
 last_updated_date = df.iloc[:,9]
 
+## Function to create first objective
+def create_first_objective():
+    content = "## Enable and Use Sample Log Data to Become Hands-on with Logging Analytics\n\n"
+    content += "* Enable the use of Sample Log Data in Compass, and use it to perform a lot of typical Logging Analytics functions such as:\n"
+    content += "* Select variety of visualizations to view the same set of log data\n"
+    content += "* Change the time range to view larger or smaller set of logs\n"
+    content += "* Run various Oracle-defined saved searches\n"
+    content += "* Compose your own queries for search\n"
+    content += "* View the logs in the Oracle-defined dashboards\n\n"
+    content += "For steps to enable sample log data and to perform the above operations, see [Video: Discover Logging Analytics Capabilities Using Sample Log Data](<https://www.youtube.com/watch?v=NxcC2r6mh2A>).\n\n"
+    content += "For the required IAM policies to access sample log data across multiple tenancies, see [Allow Users to Access Sample Log Data Across Tenancies](<https://docs.oracle.com/en-us/iaas/logging-analytics/doc/use-sample-log-data-become-hands-logging-analytics.html>).\n\n"
+    content += "In order to access the sample log data set, set the following policies in your tenancy:\n"
+    content += "    ```text\n    <copy>\n    define tenancy sampledata as ocid1.tenancy.oc1..aaaaaaaabmtv54v5bg45j7zd2eeat4df2bwfqkmxe2yy6ecdfrc36wloe4ia\n    endorse group Administrators to read loganalytics-features-family in tenancy sampledata\n    endorse group Administrators to read loganalytics-resources-family in tenancy sampledata\n    endorse group Administrators to read compartments in tenancy sampledata    \n    </copy>\n    ```\n\n"
+    return content
+
 ## Function to convert "Demo Sprints" to "sprint-demo-sprints"
 def sprint_title_converter(input_string: str):
     return "sprint-" + input_string.replace(' ', '-').lower()
@@ -87,8 +102,6 @@ def create_video_link():
 
 ## Function to fill main content
 def main_content(row):
-    print("yesssss")
-    print("roww", row)
     step_name = 'step_name'
     step_instructions = "step_instructions"
     step_images_count = "step_images_count"
@@ -154,14 +167,13 @@ def create_md_file(i) :
     content_learn_more = f"## Learn More\n\n"
     content_acknowledgement = f"## Acknowledgements\n\n"
     content_last_updated_by_and_date_A = f"* **Author** - {author[i]}\n* **Contributors** - {contributors[i]}\n* **Last Updated By/Date** - {last_updated_by[i]}, {last_updated_date[i]}"
-
     content_learn_more_example = "<!-- (Add links)\n\n"
     content_learn_more_example += "[link_text] (<link>)\n\n"
     content_learn_more_example += "[link_text] (<link>)\n\n"
     content_learn_more_example += "Replace link_text and link, for example:\n[Logging Analytics](<https://docs.oracle.com/en-us/iaas/logging-analytics/home.htm>)\n"
     content_learn_more_example += "-->\n\n"
 
-    content = content_title + content_estimated_time + create_video_link()
+    content = content_title + content_estimated_time + create_video_link() + create_first_objective()
 
     content += main_content(i)
 
